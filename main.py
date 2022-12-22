@@ -130,15 +130,10 @@ def products_callback(call: types.CallbackQuery):
 
 @bot.callback_query_handler(func=None, config=rocks_factory.filter())
 def products_callback(call: types.CallbackQuery):
-
-
     global text1
     callback_data2: dict = rocks_factory.parse(callback_data=call.data)
-
     rock_id = int(callback_data2['rocks_id'])
-
     product1 = ROCK[rock_id]
-
     if product1['name'] == "Elton John":
         text1 = f"Here are some titles from {product1['name']}: {ef2}\n"
 
