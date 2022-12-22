@@ -23,13 +23,6 @@ class DB:
         clients.to_csv('csvdata.csv', index=False)
         self.conn.execute(stmt, arg)
         self.conn.commit()
-    def add_user(self, message_id, name):
-        stmt = "INSERT INTO users (message_id,name) VALUES (?,?)"
-        arg = (message_id, name)
-        clients = pd.read_sql('SELECT * FROM users', self.conn)
-        clients.to_csv('csvdata.csv', index=False)
-        self.conn.execute(stmt, arg)
-        self.conn.commit()
 
     def get_id(self,message_id):
         stmt = "SELECT message_id FROM users where message_id == message_id"

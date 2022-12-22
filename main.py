@@ -25,17 +25,17 @@ b = '\n'.join(str(e) for e in a)
 bot = TeleBot(API_TOKEN)
 products_factory = CallbackData('product_id', prefix='products')
 
-
-def products_keyboard():
+kpops_factory = CallbackData('kpops_id', prefix='kpops')
+def kpop_keyboard():
     return types.InlineKeyboardMarkup(
         keyboard=[
             [
                 types.InlineKeyboardButton(
-                    text=product['name'],
-                    callback_data=products_factory.new(product_id=product["id"])
+                    text=kpop_artist['name'],
+                    callback_data=kpops_factory.new(kpops_id=kpop_artist["id"])
                 )
             ]
-            for product in KPOP
+            for kpop_artist in KPOP
         ]
     )
 
@@ -45,7 +45,7 @@ def send_welcome(message):
     global chat_id
     chat_id = message.chat.id
     user = message.from_user.first_name
-    db.add_user(chat_id,user)
+
     bot.reply_to(message, f"Hello {user},Welcome to Songs bot!\nType /choose + your song or /help ")
 
 
@@ -87,7 +87,7 @@ def start2(message: types.Message):
     global chat_id
     chat_id = message.chat.id
 
-    videosSearch = VideosSearch(message.text[7:], limit=10, language='en', region='US')
+    videosSearch = VideosSearch(song, limit=10, language='en', region='US')
 
     data = videosSearch.result(mode=ResultMode.json)
     d1 = json.loads(data)
@@ -104,15 +104,15 @@ def start2(message: types.Message):
 def products_command_handler(message: types.Message):
     if message.text == "KPOP":
 
-        bot.send_message(message.chat.id, 'Products:', reply_markup=products_keyboard())
+        bot.send_message(message.chat.id, 'KPOP Artists:', reply_markup=kpop_keyboard())
 
 
-@bot.callback_query_handler(func=None, config=products_factory.filter())
+@bot.callback_query_handler(func=None, config=kpops_factory.filter())
 def products_callback(call: types.CallbackQuery):
     global text
-    callback_data: dict = products_factory.parse(callback_data=call.data)
-    product_id = int(callback_data['product_id'])
-    product = KPOP[product_id]
+    callback_data: dict = kpops_factory.parse(callback_data=call.data)
+    kpop_id = int(callback_data['kpops_id'])
+    product = KPOP[kpop_id]
     if product['name'] == "BTS":
         text = f"Here are some titles: {b}\n"
     bot.send_message(chat_id=call.message.chat.id, text=text)
