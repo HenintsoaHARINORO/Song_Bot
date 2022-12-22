@@ -8,17 +8,17 @@ from telebot import types, TeleBot, ContinueHandling
 from telebot.custom_filters import AdvancedCustomFilter
 
 
-from db import DBot
+from db1 import DB
 
-db = DBot()
+db = DB()
 db.setup()
 
-API_TOKEN = '<token>'
-myFile = open('./Data/kpop.csv', 'r')
+API_TOKEN = '5961570363:AAHrpDN9V0Ti0vXKKuSLWn1ez0cdCxsOfUA'
+myFile = open('kpop.csv', 'r')
 reader = csv.DictReader(myFile)
 myList = list(reader)
 PRODUCTS = myList
-df = pd.read_csv('./Data/bts.csv')
+df = pd.read_csv('bts.csv')
 a = list(df["track"])
 b = '\n'.join(str(e) for e in a)
 
@@ -57,10 +57,10 @@ class ProductsCallbackFilter(AdvancedCustomFilter):
 
 
 markup = types.ReplyKeyboardMarkup(row_width=2)
-itembtn1 = types.KeyboardButton('KPOP')
-itembtn2 = types.KeyboardButton('ROCK')
-itembtn3 = types.KeyboardButton('JAZZ')
-markup.add(itembtn1, itembtn2, itembtn3)
+btn1 = types.KeyboardButton('KPOP')
+btn2 = types.KeyboardButton('ROCK')
+btn3 = types.KeyboardButton('JAZZ')
+markup.add(btn1, btn2, btn3)
 
 
 @bot.message_handler(commands=['help'])
@@ -68,10 +68,13 @@ def message_handler(message):
     global chat_id
     chat_id = message.chat.id
     if len(db.get_items(chat_id)) != 0:
-        bot.send_message(message.chat.id, f"Here are your favorites genre: {db.get_items(chat_id)}")
+        users_song = db.get_items(chat_id)
+        songs = '\n'.join(str(e) for e in users_song)
+        bot.send_message(message.chat.id, f"Here are your favorites : {songs}")
     else:
         bot.send_message(message.chat.id, "You are new here")
-        bot.send_message(message.chat.id, "Choose your genre of music?", reply_markup=markup)
+
+    bot.send_message(message.chat.id, "Choose your genre of music?", reply_markup=markup)
 
 
 @bot.message_handler(commands=['choose'])
@@ -79,7 +82,6 @@ def send_welcome(message):
     global chat_id
     chat_id = message.chat.id
     bot.send_message(message.chat.id, "Here is your song")
-
     return ContinueHandling()
 
 
@@ -94,10 +96,10 @@ def start2(message: types.Message):
     data = videosSearch.result(mode=ResultMode.json)
     d1 = json.loads(data)
 
-    id_song = d1["result"][0]["title"]
-    artist,title = list(id_song.split('-'))
+    song_id = d1["result"][0]["title"]
 
-    db.add_item(chat_id, message.from_user.first_name, artist,title)
+
+    db.add_item(chat_id, message.from_user.first_name,song_id)
     link = d1["result"][0]["link"]
     bot.send_message(chat_id, link)
 
@@ -118,6 +120,7 @@ def products_callback(call: types.CallbackQuery):
     if product['name'] == "BTS":
         text = f"Here are some titles: {b}\n"
     bot.send_message(chat_id=call.message.chat.id, text=text)
+    bot.send_message(call.message.chat.id,"Now please type /choose + the title")
 
 
 bot.add_custom_filter(ProductsCallbackFilter())
