@@ -2,7 +2,6 @@ from telebot import AdvancedCustomFilter, types
 from telebot.callback_data import CallbackDataFilter
 
 
-
 class CallbackFilter(AdvancedCustomFilter):
     key = 'config'
 
