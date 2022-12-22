@@ -6,9 +6,9 @@ import pandas as pd
 from telebot.callback_data import CallbackData, CallbackDataFilter
 from telebot import types, TeleBot, ContinueHandling
 from telebot.custom_filters import AdvancedCustomFilter
-from ProductsCallbackFilter import ProductsCallbackFilter
+from CallBackFilter import CallbackFilter
 
-from db1 import DB
+from db import DB
 
 db = DB()
 db.setup()
@@ -176,6 +176,6 @@ def rock_keyboard():
     )
 
 
-bot.add_custom_filter(ProductsCallbackFilter())
+bot.add_custom_filter(CallbackFilter())
 
 bot.infinity_polling()
