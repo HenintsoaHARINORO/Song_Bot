@@ -40,7 +40,6 @@ ef2 = '\n'.join(str(e) for e in efa)
 df3 = pd.read_csv('./Data/queen.csv')
 efa1 = list(df3["track"])
 ef3 = '\n'.join(str(e) for e in efa1)
-
 kpops_factory = CallbackData('kpops_id', prefix='kpops')
 rocks_factory = CallbackData('rocks_id', prefix='rocks')
 bot = TeleBot(API_TOKEN)
@@ -58,7 +57,9 @@ def send_welcome(message):
     chat_id = message.chat.id
     user = message.from_user.first_name
 
-    bot.reply_to(message, f"Hello {user},Welcome to Songs bot!\nType /choose + your song or /help ")
+    bot.reply_to(message, f"Hello {user},Welcome to Songs bot!\n"\
+                          f"Ask me any songs I will find it for you by typing /choose + your song\n"
+                        f"Type /help if you need my guides")
 
 
 @bot.message_handler(commands=['help'])
@@ -119,12 +120,12 @@ def products_callback(call: types.CallbackQuery):
     product = KPOP[kpop_id]
 
     if product['name'] == "BTS":
-        text = f"Here are some titles: {b}\n"
+        text = f"Here are some titles from {product['name']}: {b}\n"
     elif product['name'] == "EXO":
-        text = f"Here are some titles: {ef1}\n"
+        text = f"Here are some titles from {product['name']}: {ef1}\n"
 
     bot.send_message(chat_id=call.message.chat.id, text=text)
-    bot.send_message(call.message.chat.id, "Now please type /choose + the title")
+    bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
 
 
 @bot.callback_query_handler(func=None, config=rocks_factory.filter())
@@ -139,12 +140,12 @@ def products_callback(call: types.CallbackQuery):
     product1 = ROCK[rock_id]
 
     if product1['name'] == "Elton John":
-        text1 = f"Here are some titles: {ef2}\n"
+        text1 = f"Here are some titles from {product1['name']}: {ef2}\n"
 
     elif product1['name'] == "Queen":
-        text1 = f"Here are some titles: {ef3}\n"
+        text1 = f"Here are some titles from {product1['name']}: {ef3}\n"
     bot.send_message(chat_id=call.message.chat.id, text=text1)
-    bot.send_message(call.message.chat.id, "Now please type /choose + the title")
+    bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
 
 
 def kpop_keyboard():
