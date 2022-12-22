@@ -13,7 +13,7 @@ from db1 import DB
 db = DB()
 db.setup()
 
-API_TOKEN = '5961570363:AAHrpDN9V0Ti0vXKKuSLWn1ez0cdCxsOfUA'
+API_TOKEN = 'token'
 myFile = open('kpop.csv', 'r')
 reader = csv.DictReader(myFile)
 myList = list(reader)
