@@ -6,7 +6,7 @@ import pandas as pd
 from telebot.callback_data import CallbackData, CallbackDataFilter
 from telebot import types, TeleBot, ContinueHandling
 from telebot.custom_filters import AdvancedCustomFilter
-
+from CallbackFilter import CallbackFilter
 
 from db1 import DB
 
@@ -17,7 +17,7 @@ API_TOKEN = 'token'
 myFile = open('kpop.csv', 'r')
 reader = csv.DictReader(myFile)
 myList = list(reader)
-PRODUCTS = myList
+KPOP = myList
 df = pd.read_csv('bts.csv')
 a = list(df["track"])
 b = '\n'.join(str(e) for e in a)
@@ -35,7 +35,7 @@ def products_keyboard():
                     callback_data=products_factory.new(product_id=product["id"])
                 )
             ]
-            for product in PRODUCTS
+            for product in KPOP
         ]
     )
 
@@ -49,11 +49,7 @@ def send_welcome(message):
     bot.reply_to(message, f"Hello {user},Welcome to Songs bot!\nType /choose + your song or /help ")
 
 
-class ProductsCallbackFilter(AdvancedCustomFilter):
-    key = 'config'
 
-    def check(self, call: types.CallbackQuery, config: CallbackDataFilter):
-        return config.check(query=call)
 
 
 markup = types.ReplyKeyboardMarkup(row_width=2)
@@ -116,14 +112,14 @@ def products_callback(call: types.CallbackQuery):
     global text
     callback_data: dict = products_factory.parse(callback_data=call.data)
     product_id = int(callback_data['product_id'])
-    product = PRODUCTS[product_id]
+    product = KPOP[product_id]
     if product['name'] == "BTS":
         text = f"Here are some titles: {b}\n"
     bot.send_message(chat_id=call.message.chat.id, text=text)
     bot.send_message(call.message.chat.id,"Now please type /choose + the title")
 
 
-bot.add_custom_filter(ProductsCallbackFilter())
+bot.add_custom_filter(CallbackFilter())
 
 bot.infinity_polling()
 
