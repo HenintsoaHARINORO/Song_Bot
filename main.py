@@ -6,7 +6,7 @@ import pandas as pd
 from telebot.callback_data import CallbackData, CallbackDataFilter
 from telebot import types, TeleBot, ContinueHandling
 from telebot.custom_filters import AdvancedCustomFilter
-from CallbackFilter import CallbackFilter
+from ProductsCallbackFilter import ProductsCallbackFilter
 
 from db1 import DB
 
@@ -14,32 +14,42 @@ db = DB()
 db.setup()
 
 API_TOKEN = 'token'
-myFile = open('kpop.csv', 'r')
+myFile = open('./Data/kpop.csv', 'r')
 reader = csv.DictReader(myFile)
 myList = list(reader)
 KPOP = myList
-df = pd.read_csv('bts.csv')
+
+myFile1 = open('./Data/rock.csv', 'r')
+reader1 = csv.DictReader(myFile1)
+myList1 = list(reader1)
+ROCK = myList1
+
+df = pd.read_csv('./Data/bts.csv')
 a = list(df["track"])
 b = '\n'.join(str(e) for e in a)
 
-bot = TeleBot(API_TOKEN)
-products_factory = CallbackData('product_id', prefix='products')
+df1 = pd.read_csv('./Data/exo.csv')
+ef = list(df1["track"])
+ef1 = '\n'.join(str(e) for e in ef)
+
+df2 = pd.read_csv('./Data/elton.csv')
+efa = list(df2["track"])
+ef2 = '\n'.join(str(e) for e in efa)
+
+
+df3 = pd.read_csv('./Data/queen.csv')
+efa1 = list(df3["track"])
+ef3 = '\n'.join(str(e) for e in efa1)
 
 kpops_factory = CallbackData('kpops_id', prefix='kpops')
-
-
-def kpop_keyboard():
-    return types.InlineKeyboardMarkup(
-        keyboard=[
-            [
-                types.InlineKeyboardButton(
-                    text=kpop_artist['name'],
-                    callback_data=kpops_factory.new(kpops_id=kpop_artist["id"])
-                )
-            ]
-            for kpop_artist in KPOP
-        ]
-    )
+rocks_factory = CallbackData('rocks_id', prefix='rocks')
+bot = TeleBot(API_TOKEN)
+markup = types.ReplyKeyboardMarkup(row_width=2)
+btn1 = types.KeyboardButton('KPOP')
+btn2 = types.KeyboardButton('ROCK')
+btn3 = types.KeyboardButton('JAZZ')
+btn4 = types.KeyboardButton('CLASSICAL')
+markup.add(btn1, btn2, btn3, btn4)
 
 
 @bot.message_handler(commands=['start'])
@@ -49,13 +59,6 @@ def send_welcome(message):
     user = message.from_user.first_name
 
     bot.reply_to(message, f"Hello {user},Welcome to Songs bot!\nType /choose + your song or /help ")
-
-
-markup = types.ReplyKeyboardMarkup(row_width=2)
-btn1 = types.KeyboardButton('KPOP')
-btn2 = types.KeyboardButton('ROCK')
-btn3 = types.KeyboardButton('JAZZ')
-markup.add(btn1, btn2, btn3)
 
 
 @bot.message_handler(commands=['help'])
@@ -102,20 +105,76 @@ def start2(message: types.Message):
 def products_command_handler(message: types.Message):
     if message.text == "KPOP":
         bot.send_message(message.chat.id, 'KPOP Artists:', reply_markup=kpop_keyboard())
+    elif message.text == "ROCK":
+        bot.send_message(message.chat.id, 'ROCK Artists:', reply_markup=rock_keyboard())
 
 
 @bot.callback_query_handler(func=None, config=kpops_factory.filter())
 def products_callback(call: types.CallbackQuery):
     global text
-    callback_data: dict = kpops_factory.parse(callback_data=call.data)
-    kpop_id = int(callback_data['kpops_id'])
+    callback_data1: dict = kpops_factory.parse(callback_data=call.data)
+
+    kpop_id = int(callback_data1['kpops_id'])
+
     product = KPOP[kpop_id]
+
     if product['name'] == "BTS":
         text = f"Here are some titles: {b}\n"
+    elif product['name'] == "EXO":
+        text = f"Here are some titles: {ef1}\n"
+
     bot.send_message(chat_id=call.message.chat.id, text=text)
     bot.send_message(call.message.chat.id, "Now please type /choose + the title")
 
 
-bot.add_custom_filter(CallbackFilter())
+@bot.callback_query_handler(func=None, config=rocks_factory.filter())
+def products_callback(call: types.CallbackQuery):
+
+
+    global text1
+    callback_data2: dict = rocks_factory.parse(callback_data=call.data)
+
+    rock_id = int(callback_data2['rocks_id'])
+
+    product1 = ROCK[rock_id]
+
+    if product1['name'] == "Elton John":
+        text1 = f"Here are some titles: {ef2}\n"
+
+    elif product1['name'] == "Queen":
+        text1 = f"Here are some titles: {ef3}\n"
+    bot.send_message(chat_id=call.message.chat.id, text=text1)
+    bot.send_message(call.message.chat.id, "Now please type /choose + the title")
+
+
+def kpop_keyboard():
+    return types.InlineKeyboardMarkup(
+        keyboard=[
+            [
+                types.InlineKeyboardButton(
+                    text=kpop_artist['name'],
+                    callback_data=kpops_factory.new(kpops_id=kpop_artist["id"])
+                )
+            ]
+            for kpop_artist in KPOP
+        ]
+    )
+
+
+def rock_keyboard():
+    return types.InlineKeyboardMarkup(
+        keyboard=[
+            [
+                types.InlineKeyboardButton(
+                    text=rock_artist['name'],
+                    callback_data=rocks_factory.new(rocks_id=rock_artist["id"])
+                )
+            ]
+            for rock_artist in ROCK
+        ]
+    )
+
+
+bot.add_custom_filter(ProductsCallbackFilter())
 
 bot.infinity_polling()
