@@ -46,9 +46,8 @@ bot = TeleBot(API_TOKEN)
 markup = types.ReplyKeyboardMarkup(row_width=2)
 btn1 = types.KeyboardButton('KPOP')
 btn2 = types.KeyboardButton('ROCK')
-btn3 = types.KeyboardButton('JAZZ')
-btn4 = types.KeyboardButton('CLASSICAL')
-markup.add(btn1, btn2, btn3, btn4)
+
+markup.add(btn1, btn2)
 
 
 @bot.message_handler(commands=['start'])
