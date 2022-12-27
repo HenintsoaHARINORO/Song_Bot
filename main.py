@@ -76,8 +76,6 @@ def message_handler(message):
 
 @bot.message_handler(commands=['choose'])
 def send_welcome(message):
-    global chat_id
-    chat_id = message.chat.id
     bot.send_message(message.chat.id, "Here is your song")
     return ContinueHandling()
 
@@ -85,8 +83,7 @@ def send_welcome(message):
 @bot.message_handler(commands=['choose'])
 def start2(message: types.Message):
     song = message.text[7:]
-    global chat_id
-    chat_id = message.chat.id
+
 
     videosSearch = VideosSearch(song, limit=10, language='en', region='US')
 
@@ -95,9 +92,9 @@ def start2(message: types.Message):
 
     song_id = d1["result"][0]["title"]
 
-    db.add_item(chat_id, message.from_user.first_name, song_id)
+    db.add_item(message.chat.id, message.from_user.first_name, song_id)
     link = d1["result"][0]["link"]
-    bot.send_message(chat_id, link)
+    bot.send_message(message.chat.id, link)
 
 
 @bot.message_handler()
@@ -118,9 +115,9 @@ def products_callback(call: types.CallbackQuery):
     product = KPOP[kpop_id]
 
     if product['name'] == "BTS":
-        text = f"Here are some titles from {product['name']}: {bts}\n"
+        text = f"Here are some titles from {product['name']}:\n {bts}\n"
     elif product['name'] == "EXO":
-        text = f"Here are some titles from {product['name']}: {exo}\n"
+        text = f"Here are some titles from {product['name']}:\n {exo}\n"
 
     bot.send_message(chat_id=call.message.chat.id, text=text)
     bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
@@ -133,10 +130,10 @@ def products_callback(call: types.CallbackQuery):
     rock_id = int(callback_data2['rocks_id'])
     product1 = ROCK[rock_id]
     if product1['name'] == "Elton John":
-        text1 = f"Here are some titles from {product1['name']}: {elton}\n"
+        text1 = f"Here are some titles from {product1['name']}:\n {elton}\n"
 
     elif product1['name'] == "Queen":
-        text1 = f"Here are some titles from {product1['name']}: {queen}\n"
+        text1 = f"Here are some titles from {product1['name']}: \n {queen}\n"
     bot.send_message(chat_id=call.message.chat.id, text=text1)
     bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
 
