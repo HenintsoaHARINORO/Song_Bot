@@ -1,7 +1,7 @@
 import csv
 import json
 import datetime
-
+import config as config
 from youtubesearchpython import *
 import pandas as pd
 from telebot.callback_data import CallbackData, CallbackDataFilter
@@ -14,7 +14,7 @@ from db import DB
 db = DB()
 db.setup()
 
-API_TOKEN = 'token'
+
 
 def csv_to_list(file_csv):
     return list(csv.DictReader(open(file_csv, 'r')))
@@ -33,7 +33,7 @@ queen = song_titles('Data/queen.csv')
 
 kpops_factory = CallbackData('kpops_id', prefix='kpops')
 rocks_factory = CallbackData('rocks_id', prefix='rocks')
-bot = TeleBot(API_TOKEN)
+bot = TeleBot(config.API_TOKEN)
 markup = types.ReplyKeyboardMarkup(row_width=2)
 btn1 = types.KeyboardButton('KPOP')
 btn2 = types.KeyboardButton('ROCK')
