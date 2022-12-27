@@ -40,7 +40,9 @@ btn2 = types.KeyboardButton('ROCK')
 
 markup.add(btn1, btn2)
 now = datetime.datetime.now()
-
+heart_emoji = "\U00002764"
+hint_emoji = "\U0001F4A1"
+star_emoji = " \U00002728"
 def greetings():
     greeting = ""
     if 5 <= now.hour < 12:
@@ -54,17 +56,17 @@ def greetings():
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     user = message.from_user.first_name
-    bot.reply_to(message, f"{greetings()} {user} \U00002764,\n"
+    bot.reply_to(message, f"{greetings()} {user} {heart_emoji},\n"
                           f"Welcome to Songs bot!\n"
                           f"Ask me any songs I will find it for you \n"
-                          f"\U0001F4A1 Type /choose + your song\n"
-                          f"\U0001F4A1  Type /help if you need my guides")
+                          f"{hint_emoji} Type /choose + your song\n"
+                          f"{hint_emoji}  Type /help if you need my guides")
 
 @bot.message_handler(commands=['help'])
 def message_handler(message):
     if db.len_items(message.chat.id) != 0:
         users_song = db.get_items(message.chat.id)
-        songs = '\n'.join('\U00002728 ' + str(e) for e in users_song)
+        songs = '\n'.join(star_emoji + str(e) for e in users_song)
         bot.send_message(message.chat.id, f"Here are your favorites :\n"
                                           f"{songs}")
 
