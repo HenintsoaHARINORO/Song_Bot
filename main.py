@@ -1,5 +1,6 @@
 import csv
 import json
+import datetime
 
 from youtubesearchpython import *
 import pandas as pd
@@ -14,32 +15,22 @@ db = DB()
 db.setup()
 
 API_TOKEN = 'token'
-myFile = open('./Data/kpop.csv', 'r')
-reader = csv.DictReader(myFile)
-myList = list(reader)
-KPOP = myList
 
-myFile1 = open('./Data/rock.csv', 'r')
-reader1 = csv.DictReader(myFile1)
-myList1 = list(reader1)
-ROCK = myList1
-
-df = pd.read_csv('./Data/bts.csv')
-a = list(df["track"])
-b = '\n'.join(str(e) for e in a)
-
-df1 = pd.read_csv('./Data/exo.csv')
-ef = list(df1["track"])
-ef1 = '\n'.join(str(e) for e in ef)
-
-df2 = pd.read_csv('./Data/elton.csv')
-efa = list(df2["track"])
-ef2 = '\n'.join(str(e) for e in efa)
+def csv_to_list(file_csv):
+    return list(csv.DictReader(open(file_csv, 'r')))
 
 
-df3 = pd.read_csv('./Data/queen.csv')
-efa1 = list(df3["track"])
-ef3 = '\n'.join(str(e) for e in efa1)
+def song_titles(file_csv):
+    df = pd.read_csv(file_csv)
+    return '\n'.join('\U00002b50 '+str(e) for e in list(df["track"]))
+
+KPOP = csv_to_list('Data/kpop.csv')
+ROCK = csv_to_list('Data/rock.csv')
+bts = song_titles('Data/bts.csv')
+exo = song_titles('Data/exo.csv')
+elton = song_titles('Data/elton.csv')
+queen = song_titles('Data/queen.csv')
+
 kpops_factory = CallbackData('kpops_id', prefix='kpops')
 rocks_factory = CallbackData('rocks_id', prefix='rocks')
 bot = TeleBot(API_TOKEN)
@@ -48,27 +39,35 @@ btn1 = types.KeyboardButton('KPOP')
 btn2 = types.KeyboardButton('ROCK')
 
 markup.add(btn1, btn2)
+now = datetime.datetime.now()
 
+def greetings():
+    greeting = ""
+    if 5 <= now.hour < 12:
+        greeting = "Good morning"
+    elif 12 <= now.hour < 17:
+        greeting = "Good afternoon"
+    elif 17 <= now.hour <= 23:
+        greeting = "Good evening"
+    return greeting
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    global chat_id
-    chat_id = message.chat.id
     user = message.from_user.first_name
-
-    bot.reply_to(message, f"Hello {user},Welcome to Songs bot!\n"\
-                          f"Ask me any songs I will find it for you by typing /choose + your song\n"
-                        f"Type /help if you need my guides")
-
+    bot.reply_to(message, f"{greetings()} {user} \U00002764,\n"
+                          f"Welcome to Songs bot!\n"
+                          f"Ask me any songs I will find it for you \n"
+                          f"\U0001F4A1 Type /choose + your song\n"
+                          f"\U0001F4A1  Type /help if you need my guides")
 
 @bot.message_handler(commands=['help'])
 def message_handler(message):
-    global chat_id
-    chat_id = message.chat.id
-    if len(db.get_items(chat_id)) != 0:
-        users_song = db.get_items(chat_id)
-        songs = '\n'.join(str(e) for e in users_song)
-        bot.send_message(message.chat.id, f"Here are your favorites : {songs}")
+    if db.len_items(message.chat.id) != 0:
+        users_song = db.get_items(message.chat.id)
+        songs = '\n'.join('\U00002728 ' + str(e) for e in users_song)
+        bot.send_message(message.chat.id, f"Here are your favorites :\n"
+                                          f"{songs}")
+
     else:
         bot.send_message(message.chat.id, "You are new here")
 
@@ -119,9 +118,9 @@ def products_callback(call: types.CallbackQuery):
     product = KPOP[kpop_id]
 
     if product['name'] == "BTS":
-        text = f"Here are some titles from {product['name']}: {b}\n"
+        text = f"Here are some titles from {product['name']}: {bts}\n"
     elif product['name'] == "EXO":
-        text = f"Here are some titles from {product['name']}: {ef1}\n"
+        text = f"Here are some titles from {product['name']}: {exo}\n"
 
     bot.send_message(chat_id=call.message.chat.id, text=text)
     bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
@@ -134,10 +133,10 @@ def products_callback(call: types.CallbackQuery):
     rock_id = int(callback_data2['rocks_id'])
     product1 = ROCK[rock_id]
     if product1['name'] == "Elton John":
-        text1 = f"Here are some titles from {product1['name']}: {ef2}\n"
+        text1 = f"Here are some titles from {product1['name']}: {elton}\n"
 
     elif product1['name'] == "Queen":
-        text1 = f"Here are some titles from {product1['name']}: {ef3}\n"
+        text1 = f"Here are some titles from {product1['name']}: {queen}\n"
     bot.send_message(chat_id=call.message.chat.id, text=text1)
     bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
 

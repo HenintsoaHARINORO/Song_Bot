@@ -1,9 +1,11 @@
 import sqlite3
+from itertools import chain
+
 import pandas as pd
 
 
 class DB:
-    def __init__(self, dbname="./Database/save.txt"):
+    def __init__(self, dbname="./Database/save.sqlite"):
         self.dbname = dbname
         self.conn = sqlite3.connect(dbname, check_same_thread=False)
 
@@ -19,13 +21,11 @@ class DB:
         clients.to_csv('./Database/csvdata.csv', index=False)
         self.conn.execute(stmt, arg)
         self.conn.commit()
-
-    def get_id(self, message_id):
-        stmt = "SELECT message_id FROM users where message_id == message_id"
-        return [x[0] for x in self.conn.execute(stmt)]
+    def len_items(self,message_id):
+        return len(list(self.conn.execute("SELECT song FROM users where message_id = %10d" % message_id)))
 
     def get_items(self, message_id):
-        clients = pd.read_sql('SELECT * FROM users', self.conn)
-        clients.to_csv('./Database/csvdata.csv', index=False)
-        stmt = "SELECT song FROM users where message_id == message_id"
-        return [x[0] for x in self.conn.execute(stmt)]
+        l = list(self.conn.execute("SELECT song FROM users where message_id = %10d" % message_id))
+        return iter(chain(*l))
+
+
