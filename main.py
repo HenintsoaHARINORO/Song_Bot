@@ -19,7 +19,7 @@ def csv_to_list(file_csv):
 
 def song_titles(file_csv):
     df = pd.read_csv(file_csv)
-    return '\n'.join('\U00002b50 ' + str(e) for e in list(df["track"]))
+    return '\n'.join(constant.SPARKLE_EMOJI+ str(e) for e in list(df["track"]))
 
 
 KPOP = csv_to_list('Data/kpop.csv')
