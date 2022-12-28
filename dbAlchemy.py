@@ -1,42 +1,41 @@
 from itertools import chain
+from sqlalchemy import create_engine, insert, MetaData
+from sqlalchemy import Column
+from sqlalchemy import select
+from sqlalchemy import Integer
 
-import sqlalchemy as db
+from sqlalchemy import String
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+dbname = "./Database/info.db"
+engine = create_engine(f'sqlite:///{dbname}', connect_args={'check_same_thread': False}, echo=False)
+Session = sessionmaker(bind=engine)
+session = Session()
+Base = declarative_base()
 
 
-class DbSqlAlchemy:
-    def __init__(self, dbname="./Database/info.db"):
-        self.dbname = dbname
-        self.engine = db.create_engine(f'sqlite:///{dbname}', connect_args={'check_same_thread': False}, echo=False)
-        self.conn = self.engine.connect()
-        self.metadata_obj = db.MetaData()
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    message_id = Column(Integer)
+    name = Column(String(30))
+    song = Column(String)
 
-    def setup(self):
-        users = db.Table(
-            'users',
-            self.metadata_obj,
-            db.Column('id', db.Integer, primary_key=True),
-            db.Column('message_id', db.BIGINT),
-            db.Column('name', db.String),
-            db.Column('song', db.String), extend_existing=True
-        )
-        self.metadata_obj.create_all(self.engine)
-        return users
 
-    def add_item(self, message_id, name, song):
-        query = db.insert(DbSqlAlchemy.setup(self)).values(message_id=message_id, name=name, song=song)
-        self.conn.execute(query)
+Base.metadata.create_all(engine)
 
-    def len_items(self, message_id):
-        query = DbSqlAlchemy.setup(self).select().where(DbSqlAlchemy.setup(self).columns.message_id == message_id)
-        output = self.conn.execute(query)
-        return len(list(output.fetchall()))
 
-    def get_items(self, message_id):
-        query = db.select([DbSqlAlchemy.setup(self).c.song]).where(
-            DbSqlAlchemy.setup(self).columns.message_id == message_id)
-        return iter(chain(*list(self.conn.execute(query).fetchall())))
+def add_item(message_id, name, song):
+    user = User(message_id=message_id, name=name, song=song)
+    session.add(user)
+    session.commit()
 
-    def get_last_row(self):
-        query = db.select([DbSqlAlchemy.setup(self).c.title, DbSqlAlchemy.setup(self).c.artist]).order_by(
-            db.desc(DbSqlAlchemy.setup(self).columns.id))
-        return list(self.conn.execute(query).fetchall())
+
+def get_items(message_id):
+    songs = session.query(User.song).where(User.message_id == message_id)
+    return iter(chain(*songs))
+
+
+def len_items(message_id):
+    stmt = session.query(User.song).where(User.message_id == message_id)
+    return len(list(stmt))

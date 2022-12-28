@@ -6,11 +6,9 @@ import pandas as pd
 from youtubesearchpython import *
 from telebot import TeleBot, types, ContinueHandling
 from telebot.callback_data import CallbackData
-from CallBackFilter import CallBackFilter
-from dbAlchemy import DbSqlAlchemy
 
-db = DbSqlAlchemy()
-db.setup()
+import dbAlchemy
+from CallBackFilter import CallBackFilter
 
 
 def csv_to_list(file_csv):
@@ -19,7 +17,7 @@ def csv_to_list(file_csv):
 
 def song_titles(file_csv):
     df = pd.read_csv(file_csv)
-    return '\n'.join(constant.SPARKLE_EMOJI+ str(e) for e in list(df["track"]))
+    return '\n'.join(constant.SPARKLE_EMOJI + str(e) for e in list(df["track"]))
 
 
 KPOP = csv_to_list('Data/kpop.csv')
@@ -63,8 +61,8 @@ def send_welcome(message):
 
 @bot.message_handler(commands=['help'])
 def message_handler(message):
-    if db.len_items(message.chat.id) != 0:
-        users_song = db.get_items(message.chat.id)
+    if dbAlchemy.len_items(message.chat.id) != 0:
+        users_song = dbAlchemy.get_items(message.chat.id)
         songs = '\n'.join(constant.STAR_EMOJI + str(e) for e in users_song)
         bot.send_message(message.chat.id, f"Here are your favorites :\n"
                                           f"{songs}")
@@ -86,7 +84,7 @@ def start2(message: types.Message):
     data = videosSearch.result(mode=ResultMode.json)
     d1 = json.loads(data)
     song_id = d1["result"][0]["title"]
-    db.add_item(message.chat.id, message.from_user.first_name, song_id)
+    dbAlchemy.add_item(message.chat.id, message.from_user.first_name, song_id)
     link = d1["result"][0]["link"]
     bot.send_message(message.chat.id, link)
 
