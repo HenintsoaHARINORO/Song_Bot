@@ -92,37 +92,37 @@ def start2(message: types.Message):
 @bot.message_handler()
 def products_command_handler(message: types.Message):
     if message.text == "KPOP":
-        bot.send_message(message.chat.id, 'KPOP Artists:', reply_markup=kpop_keyboard())
+        bot.send_message(message.chat.id, 'KPOP singers:', reply_markup=kpop_keyboard())
     elif message.text == "ROCK":
-        bot.send_message(message.chat.id, 'ROCK Artists:', reply_markup=rock_keyboard())
+        bot.send_message(message.chat.id, 'ROCK singers:', reply_markup=rock_keyboard())
 
 
 @bot.callback_query_handler(func=None, config=kpops_factory.filter())
-def artists_callback(call: types.CallbackQuery):
+def singers_callback(call: types.CallbackQuery):
     text = ""
     callback_data: dict = kpops_factory.parse(callback_data=call.data)
     kpop_id = int(callback_data['kpops_id'])
-    artist = KPOP[kpop_id]
-    if artist['name'] == "BTS":
-        text = f"Here are some titles from {artist['name']}:\n {bts}\n"
-    elif artist['name'] == "EXO":
-        text = f"Here are some titles from {artist['name']}:\n {exo}\n"
+    singer = KPOP[kpop_id]
+    if singer['name'] == "BTS":
+        text = f"Here are some titles from {singer['name']}:\n {bts}\n"
+    elif singer['name'] == "EXO":
+        text = f"Here are some titles from {singer['name']}:\n {exo}\n"
 
     bot.send_message(chat_id=call.message.chat.id, text=text)
     bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
 
 
 @bot.callback_query_handler(func=None, config=rocks_factory.filter())
-def artists_callback(call: types.CallbackQuery):
+def singers_callback(call: types.CallbackQuery):
     text1 = ""
     callback_data2: dict = rocks_factory.parse(callback_data=call.data)
     rock_id = int(callback_data2['rocks_id'])
-    artist = ROCK[rock_id]
-    if artist['name'] == "Elton John":
-        text1 = f"Here are some titles from {artist['name']}:\n {elton}\n"
+    singer = ROCK[rock_id]
+    if singer['name'] == "Elton John":
+        text1 = f"Here are some titles from {singer['name']}:\n {elton}\n"
 
-    elif artist['name'] == "Queen":
-        text1 = f"Here are some titles from {artist['name']}: \n {queen}\n"
+    elif singer['name'] == "Queen":
+        text1 = f"Here are some titles from {singer['name']}: \n {queen}\n"
     bot.send_message(chat_id=call.message.chat.id, text=text1)
     bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
 
@@ -132,11 +132,11 @@ def kpop_keyboard():
         keyboard=[
             [
                 types.InlineKeyboardButton(
-                    text=kpop_artist['name'],
-                    callback_data=kpops_factory.new(kpops_id=kpop_artist["id"])
+                    text=kpop_singer['name'],
+                    callback_data=kpops_factory.new(kpops_id=kpop_singer["id"])
                 )
             ]
-            for kpop_artist in KPOP
+            for kpop_singer in KPOP
         ]
     )
 
@@ -146,11 +146,11 @@ def rock_keyboard():
         keyboard=[
             [
                 types.InlineKeyboardButton(
-                    text=rock_artist['name'],
-                    callback_data=rocks_factory.new(rocks_id=rock_artist["id"])
+                    text=rock_singer['name'],
+                    callback_data=rocks_factory.new(rocks_id=rock_singer["id"])
                 )
             ]
-            for rock_artist in ROCK
+            for rock_singer in ROCK
         ]
     )
 
