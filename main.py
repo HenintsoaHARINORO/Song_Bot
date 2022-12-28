@@ -1,18 +1,15 @@
 import csv
 import json
 import datetime
-
+import constant
+import pandas as pd
+from youtubesearchpython import *
 from telebot import TeleBot, types, ContinueHandling
 from telebot.callback_data import CallbackData
-from youtube_title_parse import get_artist_title
-import config as config
-from youtubesearchpython import *
-import pandas as pd
-from CallBackFilter import CallbackFilter
+from CallBackFilter import CallBackFilter
+from dbAlchemy import DbSqlAlchemy
 
-from dbAlchemy import DB
-
-db = DB()
+db = DbSqlAlchemy()
 db.setup()
 
 
@@ -34,16 +31,13 @@ queen = song_titles('Data/queen.csv')
 
 kpops_factory = CallbackData('kpops_id', prefix='kpops')
 rocks_factory = CallbackData('rocks_id', prefix='rocks')
-bot = TeleBot(config.API_TOKEN)
+bot = TeleBot(constant.API_TOKEN)
 markup = types.ReplyKeyboardMarkup(row_width=2)
 btn1 = types.KeyboardButton('KPOP')
 btn2 = types.KeyboardButton('ROCK')
 
 markup.add(btn1, btn2)
 now = datetime.datetime.now()
-heart_emoji = "\U00002764"
-hint_emoji = "\U0001F4A1"
-star_emoji = " \U00002728"
 
 
 def greetings():
@@ -60,24 +54,22 @@ def greetings():
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     user = message.from_user.first_name
-    bot.reply_to(message, f"{greetings()} {user} {heart_emoji},\n"
+    bot.reply_to(message, f"{greetings()} {user} {constant.HEART_EMOJI},\n"
                           f"Welcome to Songs bot!\n"
                           f"Ask me any songs I will find it for you \n"
-                          f"{hint_emoji} Type /choose + your song\n"
-                          f"{hint_emoji}  Type /help if you need my guides")
+                          f"{constant.HINT_EMOJI} Type /choose + your song\n"
+                          f"{constant.HINT_EMOJI}  Type /help if you need my guides")
 
 
 @bot.message_handler(commands=['help'])
 def message_handler(message):
     if db.len_items(message.chat.id) != 0:
         users_song = db.get_items(message.chat.id)
-        songs = '\n'.join(star_emoji + str(e) for e in users_song)
+        songs = '\n'.join(constant.STAR_EMOJI + str(e) for e in users_song)
         bot.send_message(message.chat.id, f"Here are your favorites :\n"
                                           f"{songs}")
-
     else:
         bot.send_message(message.chat.id, "You are new here")
-
     bot.send_message(message.chat.id, "Choose your genre of music?", reply_markup=markup)
 
 
@@ -90,18 +82,12 @@ def send_welcome(message):
 @bot.message_handler(commands=['choose'])
 def start2(message: types.Message):
     song = message.text[7:]
-
     videosSearch = VideosSearch(song, limit=10, language='en', region='US')
-
     data = videosSearch.result(mode=ResultMode.json)
     d1 = json.loads(data)
-
     song_id = d1["result"][0]["title"]
-
-    artist, title = get_artist_title(song_id)
-    db.add_item(message.chat.id, message.from_user.first_name, artist, title)
+    db.add_item(message.chat.id, message.from_user.first_name, song_id)
     link = d1["result"][0]["link"]
-
     bot.send_message(message.chat.id, link)
 
 
@@ -114,34 +100,31 @@ def products_command_handler(message: types.Message):
 
 
 @bot.callback_query_handler(func=None, config=kpops_factory.filter())
-def products_callback(call: types.CallbackQuery):
-    global text
-    callback_data1: dict = kpops_factory.parse(callback_data=call.data)
-
-    kpop_id = int(callback_data1['kpops_id'])
-
-    product = KPOP[kpop_id]
-
-    if product['name'] == "BTS":
-        text = f"Here are some titles from {product['name']}:\n {bts}\n"
-    elif product['name'] == "EXO":
-        text = f"Here are some titles from {product['name']}:\n {exo}\n"
+def artists_callback(call: types.CallbackQuery):
+    text = ""
+    callback_data: dict = kpops_factory.parse(callback_data=call.data)
+    kpop_id = int(callback_data['kpops_id'])
+    artist = KPOP[kpop_id]
+    if artist['name'] == "BTS":
+        text = f"Here are some titles from {artist['name']}:\n {bts}\n"
+    elif artist['name'] == "EXO":
+        text = f"Here are some titles from {artist['name']}:\n {exo}\n"
 
     bot.send_message(chat_id=call.message.chat.id, text=text)
     bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
 
 
 @bot.callback_query_handler(func=None, config=rocks_factory.filter())
-def products_callback(call: types.CallbackQuery):
-    global text1
+def artists_callback(call: types.CallbackQuery):
+    text1 = ""
     callback_data2: dict = rocks_factory.parse(callback_data=call.data)
     rock_id = int(callback_data2['rocks_id'])
-    product1 = ROCK[rock_id]
-    if product1['name'] == "Elton John":
-        text1 = f"Here are some titles from {product1['name']}:\n {elton}\n"
+    artist = ROCK[rock_id]
+    if artist['name'] == "Elton John":
+        text1 = f"Here are some titles from {artist['name']}:\n {elton}\n"
 
-    elif product1['name'] == "Queen":
-        text1 = f"Here are some titles from {product1['name']}: \n {queen}\n"
+    elif artist['name'] == "Queen":
+        text1 = f"Here are some titles from {artist['name']}: \n {queen}\n"
     bot.send_message(chat_id=call.message.chat.id, text=text1)
     bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
 
@@ -174,6 +157,6 @@ def rock_keyboard():
     )
 
 
-bot.add_custom_filter(CallbackFilter())
+bot.add_custom_filter(CallBackFilter())
 
 bot.infinity_polling()
