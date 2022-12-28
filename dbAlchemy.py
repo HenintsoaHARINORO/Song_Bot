@@ -7,8 +7,9 @@ from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-dbname = "./Database/info.db"
-engine = create_engine(f'sqlite:///{dbname}', connect_args={'check_same_thread': False}, echo=False)
+import constant
+
+engine = create_engine(f'sqlite:///{constant.DBNAME}', connect_args={'check_same_thread': False}, echo=False)
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
