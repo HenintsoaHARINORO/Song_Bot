@@ -92,7 +92,7 @@ def start2(message: types.Message):
 @bot.message_handler()
 def products_command_handler(message: types.Message):
     if message.text == "KPOP":
-        bot.send_message(message.chat.id, 'KPOP singers:', reply_markup=kpop_keyboard())
+        bot.send_message(message.chat.id, 'KPOP bands:', reply_markup=kpop_keyboard())
     elif message.text == "ROCK":
         bot.send_message(message.chat.id, 'ROCK singers:', reply_markup=rock_keyboard())
 
