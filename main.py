@@ -1,19 +1,19 @@
 import csv
 import json
 import datetime
+
+from telebot import TeleBot, types, ContinueHandling
+from telebot.callback_data import CallbackData
+from youtube_title_parse import get_artist_title
 import config as config
 from youtubesearchpython import *
 import pandas as pd
-from telebot.callback_data import CallbackData, CallbackDataFilter
-from telebot import types, TeleBot, ContinueHandling
-from telebot.custom_filters import AdvancedCustomFilter
 from CallBackFilter import CallbackFilter
 
-from db import DB
+from dbAlchemy import DB
 
 db = DB()
 db.setup()
-
 
 
 def csv_to_list(file_csv):
@@ -22,7 +22,8 @@ def csv_to_list(file_csv):
 
 def song_titles(file_csv):
     df = pd.read_csv(file_csv)
-    return '\n'.join('\U00002b50 '+str(e) for e in list(df["track"]))
+    return '\n'.join('\U00002b50 ' + str(e) for e in list(df["track"]))
+
 
 KPOP = csv_to_list('Data/kpop.csv')
 ROCK = csv_to_list('Data/rock.csv')
@@ -43,6 +44,8 @@ now = datetime.datetime.now()
 heart_emoji = "\U00002764"
 hint_emoji = "\U0001F4A1"
 star_emoji = " \U00002728"
+
+
 def greetings():
     greeting = ""
     if 5 <= now.hour < 12:
@@ -53,6 +56,7 @@ def greetings():
         greeting = "Good evening"
     return greeting
 
+
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     user = message.from_user.first_name
@@ -61,6 +65,7 @@ def send_welcome(message):
                           f"Ask me any songs I will find it for you \n"
                           f"{hint_emoji} Type /choose + your song\n"
                           f"{hint_emoji}  Type /help if you need my guides")
+
 
 @bot.message_handler(commands=['help'])
 def message_handler(message):
@@ -86,7 +91,6 @@ def send_welcome(message):
 def start2(message: types.Message):
     song = message.text[7:]
 
-
     videosSearch = VideosSearch(song, limit=10, language='en', region='US')
 
     data = videosSearch.result(mode=ResultMode.json)
@@ -94,8 +98,10 @@ def start2(message: types.Message):
 
     song_id = d1["result"][0]["title"]
 
-    db.add_item(message.chat.id, message.from_user.first_name, song_id)
+    artist, title = get_artist_title(song_id)
+    db.add_item(message.chat.id, message.from_user.first_name, artist, title)
     link = d1["result"][0]["link"]
+
     bot.send_message(message.chat.id, link)
 
 
