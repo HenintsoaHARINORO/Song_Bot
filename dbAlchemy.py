@@ -3,11 +3,10 @@ from itertools import chain
 import sqlalchemy as db
 
 
-
 class DbSqlAlchemy:
-    def __init__(self):
-        self.engine = db.create_engine('sqlite:///./Database/info.db', connect_args={'check_same_thread': False},
-                                       echo=False)
+    def __init__(self, dbname="./Database/info.db"):
+        self.dbname = dbname
+        self.engine = db.create_engine(f'sqlite:///{dbname}', connect_args={'check_same_thread': False}, echo=False)
         self.conn = self.engine.connect()
         self.metadata_obj = db.MetaData()
 
