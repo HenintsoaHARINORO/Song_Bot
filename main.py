@@ -79,7 +79,7 @@ def send_welcome(message):
 
 @bot.message_handler(commands=['choose'])
 def start2(message: types.Message):
-    song = message.text[7:]
+    song = message.text.split(' ', 1)[1]  # get the title /or singer after the command /choose
     videosSearch = VideosSearch(song, limit=10, language='en', region='US')
     data = videosSearch.result(mode=ResultMode.json)
     d1 = json.loads(data)
