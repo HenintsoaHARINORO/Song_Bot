@@ -4,3 +4,5 @@ SPARKLE_EMOJI = "\U00002b50"
 HEART_EMOJI = "\U00002764"
 HINT_EMOJI = "\U0001F4A1"
 DBNAME = "./Database/info.db"
+NOON = 12  # hours
+EVENING = 18  # hours

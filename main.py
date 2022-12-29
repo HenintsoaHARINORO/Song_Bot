@@ -39,14 +39,12 @@ now = datetime.datetime.now()
 
 
 def greetings():
-    greeting = ""
-    if 5 <= now.hour < 12:
-        greeting = "Good morning"
-    elif 12 <= now.hour < 17:
-        greeting = "Good afternoon"
-    elif 17 <= now.hour <= 23:
-        greeting = "Good evening"
-    return greeting
+    if now.hour < constant.NOON:
+        return "Good morning"
+    elif constant.NOON <= now.hour < constant.EVENING:
+        return "Good afternoon"
+    else:
+        return "Good evening"
 
 
 @bot.message_handler(commands=['start'])

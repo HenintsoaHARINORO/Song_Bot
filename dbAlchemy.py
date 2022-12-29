@@ -1,7 +1,6 @@
 from itertools import chain
 from sqlalchemy import create_engine, insert, MetaData
 from sqlalchemy import Column
-from sqlalchemy import select
 from sqlalchemy import Integer
 
 from sqlalchemy import String
