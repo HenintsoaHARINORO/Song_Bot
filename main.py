@@ -20,7 +20,7 @@ def csv_to_list(file_csv):
 # function that fetches the title of songs from csv files
 def song_titles(file_csv):
     df = pd.read_csv(file_csv)
-    return '\n'.join(constant.SPARKLE_EMOJI + str(e) for e in random.sample(list(df["track"]),constant.RANDOM))
+    return '\n'.join(constant.SPARKLE_EMOJI + str(e) for e in random.sample(list(df["track"]), constant.RANDOM))
 
 
 # Take 2 random elements from the file to be suggested to the user
@@ -35,11 +35,13 @@ kpops_factory = CallbackData('kpops_id', prefix='kpops')
 rocks_factory = CallbackData('rocks_id', prefix='rocks')
 bot = TeleBot(constant.API_TOKEN)
 markup = types.ReplyKeyboardMarkup(row_width=2)
-btn1 = types.KeyboardButton('KPOP')
-btn2 = types.KeyboardButton('ROCK')
+btn1 = types.KeyboardButton('/KPOP')
+btn2 = types.KeyboardButton('/ROCK')
 
 markup.add(btn1, btn2)
 now = datetime.datetime.now()
+
+hideBoard = types.ReplyKeyboardRemove()
 
 
 def greetings():
@@ -75,7 +77,7 @@ def message_handler(message):
 
 @bot.message_handler(commands=['choose'])
 def send_welcome(message):
-    bot.send_message(message.chat.id, "Here is your song")
+    bot.send_message(message.chat.id, f"Here is your song {constant.SMILING_EMOJI}")
     return ContinueHandling()
 
 
@@ -92,12 +94,14 @@ def start2(message: types.Message):
 
 
 # suggests to the user by genre of music
-@bot.message_handler()
-def products_command_handler(message: types.Message):
-    if message.text == "KPOP":
-        bot.send_message(message.chat.id, 'KPOP bands:', reply_markup=kpop_keyboard())
-    elif message.text == "ROCK":
-        bot.send_message(message.chat.id, 'ROCK singers:', reply_markup=rock_keyboard())
+@bot.message_handler(commands=['KPOP'])
+def suggest_bands(message: types.Message):
+    bot.send_message(message.chat.id, 'KPOP BANDS:', reply_markup=kpop_keyboard())
+
+
+@bot.message_handler(commands=['ROCK'])
+def suggest_singers(message: types.Message):
+    bot.send_message(message.chat.id, 'ROCK SINGERS:', reply_markup=rock_keyboard())
 
 
 @bot.callback_query_handler(func=None, config=kpops_factory.filter())
@@ -128,6 +132,15 @@ def singers_callback(call: types.CallbackQuery):
         text1 = f"Here are some titles from {singer['name']}: \n {queen}\n"
     bot.send_message(chat_id=call.message.chat.id, text=text1)
     bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
+
+
+@bot.message_handler(func=None, content_types=['text'])
+def command_default(message):
+    user_name = message.from_user.first_name
+    bot.send_message(message.chat.id, f"Dear {user_name}\n"
+                                      f"I don't understand \" {message.text} \" {constant.WRONG_FACE }\n"
+                                      f"Maybe you need /help {constant.CONFUSED_EMOJI}")
+    bot.send_message(message.chat.id, f"Or please use the keyboards {constant.KEYBOARD_EMOJI} ")
 
 
 def kpop_keyboard():
