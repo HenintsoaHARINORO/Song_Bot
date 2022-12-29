@@ -14,7 +14,7 @@ session = Session()
 Base = declarative_base()
 
 
-class User(Base):
+class User(Base):  # create table "users"
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     message_id = Column(Integer)
@@ -25,17 +25,17 @@ class User(Base):
 Base.metadata.create_all(engine)
 
 
-def add_item(message_id, name, song):
+def add_item(message_id, name, song):  # add values to the table
     user = User(message_id=message_id, name=name, song=song)
     session.add(user)
     session.commit()
 
 
-def get_items(message_id):
+def get_items(message_id):  # get history of songs by user
     songs = session.query(User.song).where(User.message_id == message_id)
     return iter(chain(*songs))
 
 
-def len_items(message_id):
+def len_items(message_id):  # get the number of songs stored in the table by user
     stmt = session.query(User.song).where(User.message_id == message_id)
     return len(list(stmt))

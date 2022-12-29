@@ -1,6 +1,8 @@
 import csv
 import json
 import datetime
+import random
+
 import constant
 import pandas as pd
 from youtubesearchpython import *
@@ -12,14 +14,16 @@ from CallBackFilter import CallBackFilter
 
 
 def csv_to_list(file_csv):
-    return list(csv.DictReader(open(file_csv, 'r')))
+    return random.sample(list(csv.DictReader(open(file_csv, 'r'))), constant.RANDOM)
 
 
+# function that fetches the title of songs from csv files
 def song_titles(file_csv):
     df = pd.read_csv(file_csv)
-    return '\n'.join(constant.SPARKLE_EMOJI + str(e) for e in list(df["track"]))
+    return '\n'.join(constant.SPARKLE_EMOJI + str(e) for e in random.sample(list(df["track"]),constant.RANDOM))
 
 
+# Take 2 random elements from the file to be suggested to the user
 KPOP = csv_to_list('Data/kpop.csv')
 ROCK = csv_to_list('Data/rock.csv')
 bts = song_titles('Data/bts.csv')
@@ -78,15 +82,16 @@ def send_welcome(message):
 @bot.message_handler(commands=['choose'])
 def start2(message: types.Message):
     song = message.text.split(' ', 1)[1]  # get the title /or singer after the command /choose
-    videosSearch = VideosSearch(song, limit=10, language='en', region='US')
-    data = videosSearch.result(mode=ResultMode.json)
+    videos_search = VideosSearch(song, limit=10, language='en', region='US')
+    data = videos_search.result(mode=ResultMode.json)
     d1 = json.loads(data)
-    song_id = d1["result"][0]["title"]
+    song_id = d1["result"][0]["title"]  # extract the title and singer from json
     dbAlchemy.add_item(message.chat.id, message.from_user.first_name, song_id)
-    link = d1["result"][0]["link"]
+    link = d1["result"][0]["link"]  # extract the link
     bot.send_message(message.chat.id, link)
 
 
+# suggests to the user by genre of music
 @bot.message_handler()
 def products_command_handler(message: types.Message):
     if message.text == "KPOP":
