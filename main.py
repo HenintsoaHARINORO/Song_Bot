@@ -9,36 +9,69 @@ from youtubesearchpython import *
 from telebot import TeleBot, types, ContinueHandling
 from telebot.callback_data import CallbackData
 
+import database
 import dbAlchemy
 from CallBackFilter import CallBackFilter
 
+KPOP = database.get_rows_kpop()
+ROCK = database.get_rows_rock()
+Country = database.get_rows_country()
+POP_MUSIC = database.get_rows_pop()
 
-def csv_to_list(file_csv):
-    return random.sample(list(csv.DictReader(open(file_csv, 'r'))), constant.RANDOM)
-
-
-# function that fetches the title of songs from csv files
-def song_titles(file_csv):
-    df = pd.read_csv(file_csv)
-    return '\n'.join(constant.SPARKLE_EMOJI + str(e) for e in random.sample(list(df["track"]), constant.RANDOM))
-
-
-# Take 2 random elements from the file to be suggested to the user
-KPOP = csv_to_list('Data/kpop.csv')
-ROCK = csv_to_list('Data/rock.csv')
-bts = song_titles('Data/bts.csv')
-exo = song_titles('Data/exo.csv')
-elton = song_titles('Data/elton.csv')
-queen = song_titles('Data/queen.csv')
+song_titles = {
+    "BTS": database.get_song_titles("BTS"),
+    "GOT7": database.get_song_titles("GOT7"),
+    "MonstaX": database.get_song_titles("MonstaX"),
+    "Twice": database.get_song_titles("Twice"),
+    "Blackpink": database.get_song_titles("Blackpink"),
+    "TheBeatles": database.get_song_titles("TheBeatles"),
+    "PinkF": database.get_song_titles("PinkF"),
+    "GreenD": database.get_song_titles("GreenD"),
+    "TimMcGraw": database.get_song_titles("TimMcGraw"),
+    "Aerosmith": database.get_song_titles("Aerosmith"),
+    "LinkinP": database.get_song_titles("LinkinP"),
+    "TaylorSwift": database.get_song_titles("TaylorSwift"),
+    "BensonBoone": database.get_song_titles("BensonBoone"),
+    "EdSheeran": database.get_song_titles("EdSheeran"),
+    "Adele": database.get_song_titles("Adele"),
+    "Beyonce": database.get_song_titles("Beyonce"),
+    "GeorgeStrait": database.get_song_titles("GeorgeStrait"),
+    "JohnnyCash": database.get_song_titles("JohnnyCash"),
+    "GarthBrooks": database.get_song_titles("GarthBrooks"),
+    "CarrieUnderwood": database.get_song_titles("CarrieUnderwood")
+}
+bts = song_titles["BTS"]
+got7 = song_titles["GOT7"]
+monstaX = song_titles["MonstaX"]
+twice = song_titles["Twice"]
+blackpink = song_titles["Blackpink"]
+the_beatles = song_titles["TheBeatles"]
+pinkF = song_titles["PinkF"]
+greenD = song_titles["GreenD"]
+timMcGraw = song_titles["TimMcGraw"]
+aerosmith = song_titles["Aerosmith"]
+linkinP = song_titles["LinkinP"]
+taylor_swift = song_titles["TaylorSwift"]
+benson_boone = song_titles["BensonBoone"]
+ed_sheeran = song_titles["EdSheeran"]
+adele = song_titles["Adele"]
+beyonce = song_titles["Beyonce"]
+george = song_titles["GeorgeStrait"]
+johnny_cash = song_titles["JohnnyCash"]
+garth_brooks = song_titles["GarthBrooks"]
+carrie_underwood = song_titles["CarrieUnderwood"]
 
 kpops_factory = CallbackData('kpops_id', prefix='kpops')
 rocks_factory = CallbackData('rocks_id', prefix='rocks')
+pops_factory = CallbackData('pops_id', prefix='pops')
+country_factory = CallbackData('country_id', prefix='country')
 bot = TeleBot(constant.API_TOKEN)
 markup = types.ReplyKeyboardMarkup(row_width=2)
 btn1 = types.KeyboardButton('/KPOP')
 btn2 = types.KeyboardButton('/ROCK')
-
-markup.add(btn1, btn2)
+btn3 = types.KeyboardButton('/POP_MUSIC')
+btn4 = types.KeyboardButton('/COUNTRY')
+markup.add(btn1, btn2, btn3, btn4)
 now = datetime.datetime.now()
 
 hideBoard = types.ReplyKeyboardRemove()
@@ -77,8 +110,10 @@ def message_handler(message):
 
 @bot.message_handler(commands=['choose'])
 def send_welcome(message):
-    bot.send_message(message.chat.id, f"Here is your song {constant.SMILING_EMOJI}")
-    return ContinueHandling()
+    if not message.text[7:].strip():
+        bot.send_message(message.chat.id, "Please type /choose followed by the song")
+    else:
+        return ContinueHandling()
 
 
 @bot.message_handler(commands=['choose'])
@@ -87,6 +122,7 @@ def start2(message: types.Message):
     videos_search = VideosSearch(song, limit=10, language='en', region='US')
     data = videos_search.result(mode=ResultMode.json)
     d1 = json.loads(data)
+    bot.send_message(message.chat.id, "Here is your song")
     song_id = d1["result"][0]["title"]  # extract the title and singer from json
     dbAlchemy.add_item(message.chat.id, message.from_user.first_name, song_id)
     link = d1["result"][0]["link"]  # extract the link
@@ -104,32 +140,106 @@ def suggest_singers(message: types.Message):
     bot.send_message(message.chat.id, 'ROCK SINGERS:', reply_markup=rock_keyboard())
 
 
+@bot.message_handler(commands=['POP_MUSIC'])
+def start3(message: types.Message):
+    bot.send_message(message.chat.id, 'POP Singers:', reply_markup=pop_keyboard())
+
+
+@bot.message_handler(commands=['COUNTRY'])
+def start3(message: types.Message):
+    bot.send_message(message.chat.id, 'COUNTRY Singers:', reply_markup=country_keyboard())
+
+
 @bot.callback_query_handler(func=None, config=kpops_factory.filter())
-def singers_callback(call: types.CallbackQuery):
-    text = ""
-    callback_data: dict = kpops_factory.parse(callback_data=call.data)
-    kpop_id = int(callback_data['kpops_id'])
-    singer = KPOP[kpop_id]
-    if singer['name'] == "BTS":
-        text = f"Here are some titles from {singer['name']}:\n {bts}\n"
-    elif singer['name'] == "EXO":
-        text = f"Here are some titles from {singer['name']}:\n {exo}\n"
+def products_callback(call: types.CallbackQuery):
+    global text
+    callback_data1: dict = kpops_factory.parse(callback_data=call.data)
+
+    kpop_id = int(callback_data1['kpops_id']) - 1  # id from database starts at 1
+    product = KPOP[kpop_id]
+
+    if product['name'] == "BTS":
+        text = f"Here are some titles from {product['name']}:\n {bts}\n"
+    elif product['name'] == "Got7":
+        text = f"Here are some titles from {product['name']}:\n {got7}\n"
+    elif product['name'] == "MONSTA X":
+        text = f"Here are some titles from {product['name']}:\n {monstaX}\n"
+    elif product['name'] == "Twice":
+        text = f"Here are some titles from {product['name']}:\n {twice}\n"
+    elif product['name'] == "Blackpink":
+        text = f"Here are some titles from {product['name']}:\n {blackpink}\n"
 
     bot.send_message(chat_id=call.message.chat.id, text=text)
     bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
 
 
 @bot.callback_query_handler(func=None, config=rocks_factory.filter())
-def singers_callback(call: types.CallbackQuery):
-    text1 = ""
+def products_callback(call: types.CallbackQuery):
+    global text1
     callback_data2: dict = rocks_factory.parse(callback_data=call.data)
-    rock_id = int(callback_data2['rocks_id'])
-    singer = ROCK[rock_id]
-    if singer['name'] == "Elton John":
-        text1 = f"Here are some titles from {singer['name']}:\n {elton}\n"
 
-    elif singer['name'] == "Queen":
-        text1 = f"Here are some titles from {singer['name']}: \n {queen}\n"
+    rock_id = int(callback_data2['rocks_id']) - 1
+
+    product1 = ROCK[rock_id]
+
+    if product1['name'] == "The Beatles":
+        text1 = f"Here are some titles from {product1['name']}: \n{the_beatles}\n"
+
+    elif product1['name'] == "Pink Floyd":
+        text1 = f"Here are some titles from {product1['name']}:\n {pinkF} \n"
+    elif product1['name'] == "Green Day":
+        text1 = f"Here are some titles from {product1['name']}:\n{greenD} \n"
+    elif product1['name'] == "Aerosmith":
+        text1 = f"Here are some titles from {product1['name']}:\n {aerosmith} \n"
+    elif product1['name'] == "Linkin Park":
+        text1 = f"Here are some titles from {product1['name']}:\n{linkinP} \n"
+    bot.send_message(chat_id=call.message.chat.id, text=text1)
+    bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
+
+
+@bot.callback_query_handler(func=None, config=pops_factory.filter())
+def products_callback(call: types.CallbackQuery):
+    global text1
+    callback_data2: dict = pops_factory.parse(callback_data=call.data)
+
+    pop_id = int(callback_data2['pops_id']) - 1
+
+    product1 = POP_MUSIC[pop_id]
+
+    if product1['name'] == "Taylor Swift":
+        text1 = f"Here are some titles from {product1['name']}: \n{taylor_swift}\n"
+    elif product1['name'] == "Benson Boone":
+        text1 = f"Here are some titles from {product1['name']}:\n {benson_boone} \n"
+    elif product1['name'] == "Ed Sheeran":
+        text1 = f"Here are some titles from {product1['name']}:\n{ed_sheeran} \n"
+    elif product1['name'] == "Adele":
+        text1 = f"Here are some titles from {product1['name']}:\n {adele} \n"
+    elif product1['name'] == "Beyonce":
+        text1 = f"Here are some titles from {product1['name']}:\n{beyonce} \n"
+    bot.send_message(chat_id=call.message.chat.id, text=text1)
+    bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
+
+
+@bot.callback_query_handler(func=None, config=country_factory.filter())
+def products_callback(call: types.CallbackQuery):
+    global text1
+    callback_data2: dict = country_factory.parse(callback_data=call.data)
+
+    country_id = int(callback_data2['country_id']) - 1
+
+    product1 = Country[country_id]
+
+    if product1['name'] == "Tim McGraw":
+        text1 = f"Here are some titles from {product1['name']}: \n{timMcGraw}\n"
+
+    elif product1['name'] == "George Strait":
+        text1 = f"Here are some titles from {product1['name']}:\n {george} \n"
+    elif product1['name'] == "Johnny Cash":
+        text1 = f"Here are some titles from {product1['name']}:\n{johnny_cash} \n"
+    elif product1['name'] == "Garth Brooks":
+        text1 = f"Here are some titles from {product1['name']}:\n {garth_brooks} \n"
+    elif product1['name'] == "Carrie Underwood":
+        text1 = f"Here are some titles from {product1['name']}:\n{carrie_underwood} \n"
     bot.send_message(chat_id=call.message.chat.id, text=text1)
     bot.send_message(call.message.chat.id, "Now you can choose from this list with /choose + the title")
 
@@ -138,7 +248,7 @@ def singers_callback(call: types.CallbackQuery):
 def command_default(message):
     user_name = message.from_user.first_name
     bot.send_message(message.chat.id, f"Dear {user_name}\n"
-                                      f"I don't understand \" {message.text} \" {constant.WRONG_FACE }\n"
+                                      f"I don't understand \" {message.text} \" {constant.WRONG_FACE}\n"
                                       f"Maybe you need /help {constant.CONFUSED_EMOJI}")
     bot.send_message(message.chat.id, f"Or please use the keyboards {constant.KEYBOARD_EMOJI} ")
 
@@ -167,6 +277,34 @@ def rock_keyboard():
                 )
             ]
             for rock_singer in ROCK
+        ]
+    )
+
+
+def pop_keyboard():
+    return types.InlineKeyboardMarkup(
+        keyboard=[
+            [
+                types.InlineKeyboardButton(
+                    text=pop_artist['name'],
+                    callback_data=pops_factory.new(pops_id=pop_artist["id"])
+                )
+            ]
+            for pop_artist in POP_MUSIC
+        ]
+    )
+
+
+def country_keyboard():
+    return types.InlineKeyboardMarkup(
+        keyboard=[
+            [
+                types.InlineKeyboardButton(
+                    text=country_artist['name'],
+                    callback_data=country_factory.new(country_id=country_artist["id"])
+                )
+            ]
+            for country_artist in Country
         ]
     )
 
