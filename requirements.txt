@@ -1,0 +1,4 @@
+pandas~=1.5.2
+pyTelegramBotAPI
+youtube-search-python
+SQLAlchemy~=1.4.45
